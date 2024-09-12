@@ -18,46 +18,24 @@ public class SearchController {
         this.restTemplate = restTemplate;
     }
 
-//    @GetMapping("/weather/search")
-//    @HystrixCommand(fallbackMethod = "getDetailsFallback")
-//    public CompletableFuture<Map<String, Object>> getDetails() {
-//
-//        CompletableFuture<String> studentTeacherFuture = CompletableFuture.supplyAsync(() -> {
-//            return restTemplate.getForObject("http://student/student", String.class);
-//        });
-//
-//        CompletableFuture<String> detailsFuture = CompletableFuture.supplyAsync(() -> {
-//            return restTemplate.getForObject("http://details/details/port", String.class);
-//        });
-//
-//        return studentTeacherFuture
-//                .thenCombine(detailsFuture, (studentTeacher, details) -> {
-//                    Map<String, Object> result = new HashMap<>();
-//                    result.put("student", studentTeacher);
-//                    result.put("details", details);
-//                    return result;
-//                })
-//                .exceptionally(ex -> {
-//                    return getDetailsFallback();
-//                });
-//    }
-
-    // Fallback method for getDetails
-//    public CompletableFuture<Map<String, Object>> getDetailsFallback() {
-//        Map<String, Object> fallbackResult = new HashMap<>();
-//        fallbackResult.put("student", "Fallback student data");
-//        fallbackResult.put("details", "Fallback details data");
-//        return CompletableFuture.completedFuture(fallbackResult);
-//    }
-
     @GetMapping("/weather/search")
     @HystrixCommand(fallbackMethod = "getDetailsFallback")
     public Map<String, Object> getDetails() {
         try {
 //            Thread.sleep(3000);
-            String studentTeacher = restTemplate.getForObject("http://student/student", String.class);
 
-            String details = restTemplate.getForObject("http://details/details/port", String.class);
+            CompletableFuture<String> studentTeacherFuture = CompletableFuture.supplyAsync(() ->
+                    restTemplate.getForObject("http://student/student", String.class)
+            );
+
+            CompletableFuture<String> detailsFuture = CompletableFuture.supplyAsync(() ->
+                    restTemplate.getForObject("http://details/details/port", String.class)
+            );
+
+            CompletableFuture.allOf(studentTeacherFuture, detailsFuture).join();
+
+            String studentTeacher = studentTeacherFuture.get();
+            String details = detailsFuture.get();
 
             Map<String, Object> result = new HashMap<>();
             result.put("student", studentTeacher);

@@ -22,7 +22,6 @@ public class SearchController {
     @HystrixCommand(fallbackMethod = "getDetailsFallback")
     public Map<String, Object> getDetails() {
         try {
-//            Thread.sleep(3000);
 
             CompletableFuture<String> studentTeacherFuture = CompletableFuture.supplyAsync(() ->
                     restTemplate.getForObject("http://student/student", String.class)
@@ -47,7 +46,6 @@ public class SearchController {
         }
     }
 
-    // sync
     public Map<String, Object> getDetailsFallback() {
         Map<String, Object> fallbackResult = new HashMap<>();
         fallbackResult.put("student", "Fallback: Service not available");
